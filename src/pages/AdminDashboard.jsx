@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Users, BookOpen, AlertOctagon, DollarSign, Ban, CheckCircle, Trash, Star, RefreshCw } from "lucide-react";
+import { Users, BookOpen, AlertOctagon, DollarSign, Ban, CheckCircle, Trash, Star, RefreshCw, Edit3 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function AdminDashboard() {
@@ -12,6 +12,23 @@ export default function AdminDashboard() {
   const [recipesList, setRecipesList] = useState([]);
   const [reportsList, setReportsList] = useState([]);
   const [transactionsList, setTransactionsList] = useState([]);
+
+  // Edit modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState(null);
+  const [recipeName, setRecipeName] = useState("");
+  const [recipeImageFile, setRecipeImageFile] = useState(null);
+  const [existingRecipeImage, setExistingRecipeImage] = useState("");
+  const [category, setCategory] = useState("Breakfast");
+  const [cuisineType, setCuisineType] = useState("");
+  const [difficultyLevel, setDifficultyLevel] = useState("Easy");
+  const [preparationTime, setPreparationTime] = useState("");
+  const [ingredients, setIngredients] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [price, setPrice] = useState("0");
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Load state helpers
   const [loadingStats, setLoadingStats] = useState(true);
@@ -88,7 +105,11 @@ export default function AdminDashboard() {
       const res = await fetch(`${apiUrl}/api/admin/transactions`, { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
-        setTransactionsList(data);
+        setTransactionsList(Array.isArray(data) ? data : []);
+      } else {
+        const errData = await res.json();
+        console.error("Transactions API error:", res.status, errData);
+        toast.error(errData.message || "Failed to load transactions", { className: "toast-custom" });
       }
     } catch (err) {
       console.error(err);
@@ -110,6 +131,88 @@ export default function AdminDashboard() {
   }, [activeTab]);
 
   // Actions
+  const openEditModal = (recipe) => {
+    setEditingRecipe(recipe);
+    setRecipeName(recipe.recipeName);
+    setExistingRecipeImage(recipe.recipeImage);
+    setRecipeImageFile(null);
+    setCategory(recipe.category);
+    setCuisineType(recipe.cuisineType);
+    setDifficultyLevel(recipe.difficultyLevel);
+    setPreparationTime(recipe.preparationTime.toString());
+    setIngredients(recipe.ingredients.join("\n"));
+    setInstructions(recipe.instructions.join("\n"));
+    setPrice(recipe.price.toString());
+    setFormError("");
+    setModalOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!recipeName || (!recipeImageFile && !existingRecipeImage) || !category || !cuisineType || !difficultyLevel || !preparationTime || !ingredients || !instructions) {
+      setFormError("Please fill out all required fields.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      let finalRecipeImageUrl = existingRecipeImage;
+
+      if (recipeImageFile) {
+        setUploadingImage(true);
+        try {
+          const { uploadImageToImgbb } = await import("../lib/imgbb");
+          finalRecipeImageUrl = await uploadImageToImgbb(recipeImageFile);
+        } catch (imgErr) {
+          setFormError("Failed to upload image. Please try again.");
+          setUploadingImage(false);
+          setSubmitting(false);
+          return;
+        }
+        setUploadingImage(false);
+      }
+
+      const recipeData = {
+        recipeName,
+        recipeImage: finalRecipeImageUrl,
+        category,
+        cuisineType,
+        difficultyLevel,
+        preparationTime: parseInt(preparationTime),
+        ingredients: ingredients.split("\n").map(i => i.trim()).filter(Boolean),
+        instructions: instructions.split("\n").map(i => i.trim()).filter(Boolean),
+        price: parseFloat(price) || 0
+      };
+
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      
+      const res = await fetch(`${apiUrl}/api/recipes/${editingRecipe._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(recipeData),
+        credentials: "include"
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Recipe updated successfully!", { className: "toast-custom" });
+        setModalOpen(false);
+        fetchRecipes();
+      } else {
+        setFormError(data.message || "Failed to update recipe.");
+      }
+    } catch (err) {
+      setFormError("A network error occurred. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleBlockUser = async (id, block) => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -237,7 +340,7 @@ export default function AdminDashboard() {
         </aside>
 
         {/* Tab display contents */}
-        <main style={{ backgroundColor: "#ffffff", padding: "32px", borderRadius: "12px", border: "1px solid #E5DEC9", overflowX: "auto" }}>
+        <main style={{ backgroundColor: "var(--bg-secondary)", padding: "32px", borderRadius: "12px", border: "1px solid var(--border)", overflowX: "auto" }}>
           
           {/* OVERVIEW TAB */}
           {activeTab === "overview" && (
@@ -369,9 +472,14 @@ export default function AdminDashboard() {
                             </button>
                           </td>
                           <td>
-                            <button onClick={() => handleDeleteRecipe(r._id)} className="btn btn-secondary btn-sm" style={{ color: "#DC2626" }}>
-                              <Trash size={14} />
-                            </button>
+                            <div style={{ display: "flex", gap: "8px" }}>
+                              <button onClick={() => openEditModal(r)} className="btn btn-secondary btn-sm" style={{ padding: "4px 8px", color: "var(--primary)" }}>
+                                <Edit3 size={14} />
+                              </button>
+                              <button onClick={() => handleDeleteRecipe(r._id)} className="btn btn-secondary btn-sm" style={{ padding: "4px 8px", color: "#DC2626" }}>
+                                <Trash size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -472,7 +580,17 @@ export default function AdminDashboard() {
                               <span>Recipe Purchase</span>
                             )}
                           </td>
-                          <td>{t.recipeId ? t.recipeId : "N/A"}</td>
+                          <td>
+                            {t.recipeId && typeof t.recipeId === "object" ? (
+                              <Link to={`/recipes/${t.recipeId._id}`} style={{ color: "var(--primary)", textDecoration: "underline", fontWeight: 600 }}>
+                                {t.recipeId.recipeName}
+                              </Link>
+                            ) : t.recipeId ? (
+                              <span style={{ fontFamily: "monospace", fontSize: "12px" }}>{t.recipeId}</span>
+                            ) : (
+                              <span style={{ color: "var(--text-muted)" }}>N/A (Membership)</span>
+                            )}
+                          </td>
                           <td style={{ fontWeight: 700, color: "var(--primary)" }}>${t.amount.toFixed(2)}</td>
                           <td style={{ fontFamily: "monospace", fontSize: "12px" }}>{t.transactionId}</td>
                           <td>{new Date(t.paidAt).toLocaleDateString()}</td>
@@ -487,6 +605,146 @@ export default function AdminDashboard() {
 
         </main>
       </div>
+
+      {/* Edit Recipe Modal */}
+      {modalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 style={{ fontSize: "20px" }}>Edit Recipe (Admin Override)</h3>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer" }}>×</button>
+            </div>
+
+            <form onSubmit={handleEditSubmit}>
+              <div className="modal-body">
+                {formError && (
+                  <div style={{ backgroundColor: "#FEE2E2", color: "#B91C1C", padding: "12px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500, marginBottom: "20px", borderLeft: "4px solid #B91C1C" }}>
+                    {formError}
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label className="form-label">Recipe Title *</label>
+                  <input
+                    type="text"
+                    value={recipeName}
+                    onChange={(e) => setRecipeName(e.target.value)}
+                    className="form-input"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Recipe Image *</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setRecipeImageFile(e.target.files[0])}
+                    className="form-input"
+                    required={!existingRecipeImage}
+                  />
+                  {existingRecipeImage && !recipeImageFile && (
+                    <div style={{ marginTop: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
+                      Current Image: <img src={existingRecipeImage} alt="Recipe" style={{ width: "40px", height: "40px", borderRadius: "4px", verticalAlign: "middle", marginLeft: "8px", objectFit: "cover" }} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Category *</label>
+                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="form-input">
+                      <option value="Breakfast">Breakfast</option>
+                      <option value="Lunch">Lunch</option>
+                      <option value="Dinner">Dinner</option>
+                      <option value="Dessert">Dessert</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Difficulty *</label>
+                    <select value={difficultyLevel} onChange={(e) => setDifficultyLevel(e.target.value)} className="form-input">
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Cuisine Type *</label>
+                    <input
+                      type="text"
+                      value={cuisineType}
+                      onChange={(e) => setCuisineType(e.target.value)}
+                      className="form-input"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Prep Time (mins) *</label>
+                    <input
+                      type="number"
+                      value={preparationTime}
+                      onChange={(e) => setPreparationTime(e.target.value)}
+                      min="1"
+                      className="form-input"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Ingredients * (One per line)</label>
+                  <textarea
+                    rows="4"
+                    value={ingredients}
+                    onChange={(e) => setIngredients(e.target.value)}
+                    className="form-input"
+                    style={{ resize: "vertical", fontFamily: "inherit" }}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Directions * (One step per line)</label>
+                  <textarea
+                    rows="4"
+                    value={instructions}
+                    onChange={(e) => setInstructions(e.target.value)}
+                    className="form-input"
+                    style={{ resize: "vertical", fontFamily: "inherit" }}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Price ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setModalOpen(false)} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={submitting || uploadingImage}>
+                  {uploadingImage ? "Uploading Image..." : submitting ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

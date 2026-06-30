@@ -78,7 +78,7 @@ export default function PaymentSuccess() {
   if (loading) {
     return (
       <div className="section-padding" style={{ textAlign: "center" }}>
-        <div style={{ width: "48px", height: "48px", border: "4px solid #E5DEC9", borderTop: "4px solid #15803D", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px auto" }}></div>
+        <div style={{ width: "48px", height: "48px", border: "4px solid var(--border)", borderTop: "4px solid var(--primary)", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px auto" }}></div>
         <h2>Verifying Payment</h2>
         <p style={{ color: "var(--text-secondary)" }}>Confirming transaction details with Stripe processing servers...</p>
         <style>{`
@@ -93,7 +93,7 @@ export default function PaymentSuccess() {
 
   return (
     <div className="container section-padding" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "65vh" }}>
-      <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#ffffff", padding: "40px", borderRadius: "12px", border: "1px solid #E5DEC9", boxShadow: "var(--shadow-md)", textAlign: "center" }}>
+      <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "var(--bg-secondary)", padding: "40px", borderRadius: "12px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", textAlign: "center" }}>
         {success ? (
           <>
             <div style={{ color: "var(--primary)", display: "inline-flex", marginBottom: "16px" }}>

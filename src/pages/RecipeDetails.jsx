@@ -138,7 +138,7 @@ export default function RecipeDetails() {
           }, 800);
         } else {
           toast.success("Redirecting to Stripe Checkout...", { className: "toast-custom" });
-          window.location.href = `https://checkout.stripe.com/pay/${data.id}`;
+          window.location.href = data.url || `https://checkout.stripe.com/pay/${data.id}`;
         }
       } else {
         toast.error(data.message || "Failed to create checkout session", { className: "toast-custom" });
@@ -301,7 +301,7 @@ export default function RecipeDetails() {
 
         {/* Right Column: Recipe Summary Card */}
         <aside>
-          <div style={{ backgroundColor: "#ffffff", padding: "28px", borderRadius: "12px", border: "1px solid #E5DEC9", position: "sticky", top: "100px", boxShadow: "var(--shadow-sm)" }}>
+          <div style={{ backgroundColor: "var(--bg-secondary)", padding: "28px", borderRadius: "12px", border: "1px solid var(--border)", position: "sticky", top: "100px", boxShadow: "var(--shadow-sm)" }}>
             <h4 style={{ fontSize: "20px", marginBottom: "20px", display: "flex", gap: "8px", alignItems: "center" }}>
               <BookOpen size={20} /> Culinary Info
             </h4>

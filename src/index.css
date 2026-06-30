@@ -28,6 +28,79 @@
   --glass: rgba(255, 255, 255, 0.85);
 }
 
+.dark {
+  --bg-primary: #121212;
+  --bg-secondary: #1E1E1E;
+  --bg-tertiary: #2D2D2D;
+  --text-primary: #EAEAEA;
+  --text-secondary: #A0A0A0;
+  --text-muted: #6B6B6B;
+  --border: #3A3A3A;
+  --border-focus: #15803D;
+  --glass: rgba(30, 30, 30, 0.85);
+  
+  /* Overrides for specific dark theme accents if needed */
+  --primary-light: #166534;
+  --accent-light: #7C2D12;
+}
+
+/* Dark mode select dropdown background fix */
+.dark select,
+.dark select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Dark mode modal close button fix */
+.dark .modal-header button {
+  color: var(--text-primary);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* Dark mode table row alternate shading */
+.dark tbody tr:nth-child(even) td {
+  background-color: #232323;
+}
+
+/* Dark mode aside/sidebar cards */
+.dark .dashboard-sidebar {
+  background-color: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+/* Dark mode stat cards */
+.dark .stat-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+/* Dark mode recipe card */
+.dark .recipe-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+/* Dark mode card tag glass */
+.dark .card-tag {
+  background-color: rgba(30, 30, 30, 0.85);
+  color: var(--text-primary);
+}
+
 /* Base Styles */
 * {
   box-sizing: border-box;
@@ -503,13 +576,13 @@ button, input, select, textarea {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(250, 248, 245, 0.9);
+  background-color: var(--glass);
   padding: 24px;
 }
 
 .locked-card {
   max-width: 420px;
-  background-color: #ffffff;
+  background-color: var(--bg-secondary);
   padding: 32px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -615,10 +688,17 @@ td {
   font-size: 14px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
 }
 
 tr:last-child td {
   border-bottom: none;
+}
+
+tbody tr:hover td {
+  background-color: var(--bg-tertiary);
+  transition: background-color 0.15s ease;
 }
 
 /* Modal dialog */
@@ -650,6 +730,13 @@ tr:last-child td {
   max-height: 90vh;
 }
 
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .modal-header {
   padding: 20px 24px;
   border-bottom: 1px solid var(--border);
@@ -661,6 +748,7 @@ tr:last-child td {
 .modal-body {
   padding: 24px;
   overflow-y: auto;
+  flex: 1;
 }
 
 .modal-footer {

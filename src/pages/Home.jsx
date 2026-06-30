@@ -79,7 +79,7 @@ export default function Home() {
         } else {
           toast.success("Redirecting to Stripe Checkout...", { className: "toast-custom" });
           // If real Stripe is initialized, redirect directly
-          window.location.href = `https://checkout.stripe.com/pay/${data.id}`;
+          window.location.href = data.url || `https://checkout.stripe.com/pay/${data.id}`;
         }
       } else {
         toast.error(data.message || "Failed to initiate payment session", { className: "toast-custom" });
@@ -166,7 +166,7 @@ export default function Home() {
             {popularRecipes.map((recipe) => (
               <RecipeCard recipe={recipe} key={recipe._id}>
                 <div className="card-footer">
-                  <span className="btn btn-secondary btn-sm">View Details</span>
+                  <Link to={`/recipes/${recipe._id}`} className="btn btn-secondary btn-sm">View Details</Link>
                   <span className="card-likes">
                     <Heart size={16} fill="var(--accent)" /> {recipe.likesCount}
                   </span>
@@ -194,7 +194,7 @@ export default function Home() {
             {featuredRecipes.map((recipe) => (
               <RecipeCard recipe={recipe} key={recipe._id}>
                 <div className="card-footer">
-                  <span className="btn btn-secondary btn-sm">View Details</span>
+                  <Link to={`/recipes/${recipe._id}`} className="btn btn-secondary btn-sm">View Details</Link>
                   <span className="card-likes">
                     <Heart size={16} fill="var(--accent)" /> {recipe.likesCount}
                   </span>

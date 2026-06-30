@@ -7,18 +7,21 @@ import toast from "react-hot-toast";
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
   
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Profile fields state
   const [name, setName] = useState(user?.name || "");
-  const [image, setImage] = useState(user?.image || "");
+  const [imageFile, setImageFile] = useState(null);
   const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Lists state
   const [purchased, setPurchased] = useState([]);
   const [loadingPurchased, setLoadingPurchased] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
+  const [myRecipes, setMyRecipes] = useState([]);
+  const [loadingMyRecipes, setLoadingMyRecipes] = useState(true);
 
   const fetchPurchases = async () => {
     try {
@@ -54,10 +57,28 @@ export default function Dashboard() {
     }
   };
 
+  const fetchMyRecipes = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/recipes/my-recipes`, {
+        credentials: "include"
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMyRecipes(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMyRecipes(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchPurchases();
       fetchFavorites();
+      fetchMyRecipes();
     }
   }, [user]);
 
@@ -70,13 +91,29 @@ export default function Dashboard() {
 
     try {
       setUpdatingProfile(true);
+      let newImageUrl = user?.image || "";
+      
+      if (imageFile) {
+        setUploadingImage(true);
+        try {
+          const { uploadImageToImgbb } = await import("../lib/imgbb");
+          newImageUrl = await uploadImageToImgbb(imageFile);
+        } catch (imgErr) {
+          toast.error("Failed to upload image.", { className: "toast-custom" });
+          setUploadingImage(false);
+          setUpdatingProfile(false);
+          return;
+        }
+        setUploadingImage(false);
+      }
+
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${apiUrl}/api/users/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ name, image }),
+        body: JSON.stringify({ name, image: newImageUrl }),
         credentials: "include"
       });
 
@@ -126,6 +163,14 @@ export default function Dashboard() {
         {/* Sidebar Tabs */}
         <aside className="dashboard-sidebar">
           <div
+            onClick={() => setActiveTab("overview")}
+            className={`sidebar-tab ${activeTab === "overview" ? "active" : ""}`}
+          >
+            <Clock size={18} />
+            <span>Overview</span>
+          </div>
+
+          <div
             onClick={() => setActiveTab("profile")}
             className={`sidebar-tab ${activeTab === "profile" ? "active" : ""}`}
           >
@@ -151,8 +196,37 @@ export default function Dashboard() {
         </aside>
 
         {/* Tab Content Display */}
-        <main style={{ backgroundColor: "#ffffff", padding: "32px", borderRadius: "12px", border: "1px solid #E5DEC9" }}>
+        <main style={{ backgroundColor: "var(--bg-secondary)", padding: "32px", borderRadius: "12px", border: "1px solid var(--border)", width: "100%" }}>
           
+          {/* OVERVIEW TAB */}
+          {activeTab === "overview" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+                <h2 style={{ fontSize: "22px" }}>Dashboard Overview</h2>
+                {user?.isPremium && (
+                  <span style={{ backgroundColor: "#FEF3C7", color: "#D97706", padding: "6px 12px", borderRadius: "20px", fontSize: "14px", fontWeight: "bold", border: "1px solid #FDE68A" }}>
+                    ⭐ Premium Member
+                  </span>
+                )}
+              </div>
+              
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <span style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600" }}>Total Recipes Published</span>
+                  <span className="stat-val">{loadingMyRecipes ? "-" : myRecipes.length}</span>
+                </div>
+                <div className="stat-card">
+                  <span style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600" }}>Total Favorites Saved</span>
+                  <span className="stat-val">{loadingFavorites ? "-" : favorites.length}</span>
+                </div>
+                <div className="stat-card">
+                  <span style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600" }}>Total Likes Received</span>
+                  <span className="stat-val">{loadingMyRecipes ? "-" : myRecipes.reduce((acc, curr) => acc + curr.likesCount, 0)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* PROFILE SETTINGS TAB */}
           {activeTab === "profile" && (
             <div>
@@ -170,14 +244,18 @@ export default function Dashboard() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Profile Image URL</label>
+                  <label className="form-label">Profile Image (Optional)</label>
                   <input
-                    type="url"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files[0])}
                     className="form-input"
                   />
+                  {user?.image && !imageFile && (
+                    <div style={{ marginTop: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
+                      Current Image: <img src={user.image} alt="Profile" style={{ width: "30px", height: "30px", borderRadius: "50%", verticalAlign: "middle", marginLeft: "8px" }} />
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group" style={{ marginBottom: "24px" }}>
@@ -191,8 +269,8 @@ export default function Dashboard() {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary" disabled={updatingProfile} style={{ display: "flex", gap: "8px" }}>
-                  <Save size={18} /> {updatingProfile ? "Saving Details..." : "Save Profile"}
+                <button type="submit" className="btn btn-primary" disabled={updatingProfile || uploadingImage} style={{ display: "flex", gap: "8px" }}>
+                  <Save size={18} /> {uploadingImage ? "Uploading Image..." : updatingProfile ? "Saving Details..." : "Save Profile"}
                 </button>
               </form>
             </div>

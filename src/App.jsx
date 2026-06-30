@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { Toaster } from "react-hot-toast";
 
 // Components
@@ -8,6 +9,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import Loading from "./components/Loading";
 
 // Pages
 import Home from "./pages/Home";
@@ -20,17 +22,30 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
+import NotFound from "./pages/NotFound";
 
-export default function App() {
+function MainApp() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="app-container">
+        <Navbar />
+        <main className="main-content" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loading message="Authenticating session..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
-    <AuthProvider>
-      <Router>
-        <div className="app-container">
-          <Navbar />
-          
-          <main className="main-content">
-            <Routes>
-              {/* Public Routes */}
+    <div className="app-container">
+      <Navbar />
+      
+      <main className="main-content">
+        <Routes>
+          {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/recipes" element={<BrowseRecipes />} />
               <Route path="/recipes/:id" element={<RecipeDetails />} />
@@ -82,14 +97,24 @@ export default function App() {
               />
 
               {/* Fallback Redirect */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
 
           <Footer />
-        </div>
-      </Router>
-      <Toaster position="bottom-right" />
-    </AuthProvider>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <MainApp />
+        </Router>
+        <Toaster position="bottom-right" />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

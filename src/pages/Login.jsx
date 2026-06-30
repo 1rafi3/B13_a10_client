@@ -53,14 +53,14 @@ export default function Login() {
 
   return (
     <div className="section-padding" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "80vh" }}>
-      <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "#ffffff", padding: "40px", borderRadius: "12px", border: "1px solid #E5DEC9", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" }}>
+      <div style={{ width: "100%", maxWidth: "450px", backgroundColor: "var(--bg-secondary)", padding: "40px", borderRadius: "12px", border: "1px solid var(--border)", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" }}>
         
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <div style={{ display: "inline-flex", padding: "12px", backgroundColor: "#DCFCE7", color: "#15803D", borderRadius: "50%", marginBottom: "16px" }}>
             <LogIn size={32} />
           </div>
           <h2>Welcome Back</h2>
-          <p style={{ color: "#57544E", marginTop: "8px" }}>Sign in to share and purchase recipes</p>
+          <p style={{ color: "var(--text-secondary)", marginTop: "8px" }}>Sign in to share and purchase recipes</p>
         </div>
 
         {error && (
@@ -73,7 +73,7 @@ export default function Login() {
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#8E897F" }}>
+              <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }}>
                 <Mail size={18} />
               </span>
               <input
@@ -91,7 +91,7 @@ export default function Login() {
           <div className="form-group" style={{ marginBottom: "24px" }}>
             <label className="form-label">Password</label>
             <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#8E897F" }}>
+              <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }}>
                 <Lock size={18} />
               </span>
               <input
@@ -116,10 +116,10 @@ export default function Login() {
           </button>
         </form>
 
-        <div style={{ display: "flex", alignItems: "center", margin: "24px 0", color: "#8E897F", fontSize: "14px" }}>
-          <div style={{ flexGrow: 1, height: "1px", backgroundColor: "#E5DEC9" }}></div>
+        <div style={{ display: "flex", alignItems: "center", margin: "24px 0", color: "var(--text-muted)", fontSize: "14px" }}>
+          <div style={{ flexGrow: 1, height: "1px", backgroundColor: "var(--border)" }}></div>
           <span style={{ padding: "0 12px" }}>or</span>
-          <div style={{ flexGrow: 1, height: "1px", backgroundColor: "#E5DEC9" }}></div>
+          <div style={{ flexGrow: 1, height: "1px", backgroundColor: "var(--border)" }}></div>
         </div>
 
         <button

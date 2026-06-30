@@ -16,7 +16,8 @@ export default function MyRecipes() {
 
   // Form inputs state
   const [recipeName, setRecipeName] = useState("");
-  const [recipeImage, setRecipeImage] = useState("");
+  const [recipeImageFile, setRecipeImageFile] = useState(null);
+  const [existingRecipeImage, setExistingRecipeImage] = useState("");
   const [category, setCategory] = useState("Breakfast");
   const [cuisineType, setCuisineType] = useState("");
   const [difficultyLevel, setDifficultyLevel] = useState("Easy");
@@ -27,6 +28,7 @@ export default function MyRecipes() {
 
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const fetchMyRecipes = async () => {
     try {
@@ -53,7 +55,8 @@ export default function MyRecipes() {
   const openAddModal = () => {
     setEditingRecipe(null);
     setRecipeName("");
-    setRecipeImage("");
+    setRecipeImageFile(null);
+    setExistingRecipeImage("");
     setCategory("Breakfast");
     setCuisineType("");
     setDifficultyLevel("Easy");
@@ -68,7 +71,8 @@ export default function MyRecipes() {
   const openEditModal = (recipe) => {
     setEditingRecipe(recipe);
     setRecipeName(recipe.recipeName);
-    setRecipeImage(recipe.recipeImage);
+    setExistingRecipeImage(recipe.recipeImage);
+    setRecipeImageFile(null);
     setCategory(recipe.category);
     setCuisineType(recipe.cuisineType);
     setDifficultyLevel(recipe.difficultyLevel);
@@ -84,25 +88,41 @@ export default function MyRecipes() {
     e.preventDefault();
     setFormError("");
 
-    if (!recipeName || !recipeImage || !category || !cuisineType || !difficultyLevel || !preparationTime || !ingredients || !instructions) {
+    if (!recipeName || (!recipeImageFile && !existingRecipeImage) || !category || !cuisineType || !difficultyLevel || !preparationTime || !ingredients || !instructions) {
       setFormError("Please fill out all required fields.");
       return;
     }
 
-    const recipeData = {
-      recipeName,
-      recipeImage,
-      category,
-      cuisineType,
-      difficultyLevel,
-      preparationTime: parseInt(preparationTime),
-      ingredients: ingredients.split("\n").map(i => i.trim()).filter(Boolean),
-      instructions: instructions.split("\n").map(i => i.trim()).filter(Boolean),
-      price: parseFloat(price) || 0
-    };
-
     try {
       setSubmitting(true);
+      let finalRecipeImageUrl = existingRecipeImage;
+
+      if (recipeImageFile) {
+        setUploadingImage(true);
+        try {
+          const { uploadImageToImgbb } = await import("../lib/imgbb");
+          finalRecipeImageUrl = await uploadImageToImgbb(recipeImageFile);
+        } catch (imgErr) {
+          setFormError("Failed to upload image. Please try again.");
+          setUploadingImage(false);
+          setSubmitting(false);
+          return;
+        }
+        setUploadingImage(false);
+      }
+
+      const recipeData = {
+        recipeName,
+        recipeImage: finalRecipeImageUrl,
+        category,
+        cuisineType,
+        difficultyLevel,
+        preparationTime: parseInt(preparationTime),
+        ingredients: ingredients.split("\n").map(i => i.trim()).filter(Boolean),
+        instructions: instructions.split("\n").map(i => i.trim()).filter(Boolean),
+        price: parseFloat(price) || 0
+      };
+
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
       let res;
       
@@ -193,7 +213,7 @@ export default function MyRecipes() {
       {loading ? (
         <p>Loading your recipe archive...</p>
       ) : recipes.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "80px 20px", backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E5DEC9" }}>
+        <div style={{ textAlign: "center", padding: "80px 20px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px", border: "1px solid var(--border)" }}>
           <BookOpen size={48} style={{ color: "var(--text-muted)", marginBottom: "16px" }} />
           <p style={{ color: "var(--text-secondary)", fontSize: "18px", fontWeight: "bold" }}>You haven't shared any recipes yet.</p>
           <button onClick={openAddModal} className="btn btn-primary btn-sm" style={{ marginTop: "16px" }}>
@@ -276,15 +296,19 @@ export default function MyRecipes() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Image URL *</label>
+                  <label className="form-label">Recipe Image *</label>
                   <input
-                    type="url"
-                    value={recipeImage}
-                    onChange={(e) => setRecipeImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setRecipeImageFile(e.target.files[0])}
                     className="form-input"
-                    required
+                    required={!existingRecipeImage}
                   />
+                  {existingRecipeImage && !recipeImageFile && (
+                    <div style={{ marginTop: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
+                      Current Image: <img src={existingRecipeImage} alt="Recipe" style={{ width: "40px", height: "40px", borderRadius: "4px", verticalAlign: "middle", marginLeft: "8px", objectFit: "cover" }} />
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-row">
@@ -379,8 +403,8 @@ export default function MyRecipes() {
                 <button type="button" onClick={() => setModalOpen(false)} className="btn btn-secondary">
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? "Saving..." : "Save Recipe"}
+                <button type="submit" className="btn btn-primary" disabled={submitting || uploadingImage}>
+                  {uploadingImage ? "Uploading Image..." : submitting ? "Saving..." : "Save Recipe"}
                 </button>
               </div>
             </form>

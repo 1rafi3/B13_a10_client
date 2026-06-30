@@ -71,7 +71,7 @@ export default function BrowseRecipes() {
 
       <div style={{ display: "grid", gridTemplateColumns: "250px 1fr", gap: "40px", alignItems: "start" }}>
         {/* Left Side: Filter Sidebar */}
-        <aside style={{ backgroundColor: "#ffffff", padding: "24px", borderRadius: "12px", border: "1px solid #E5DEC9" }}>
+        <aside style={{ backgroundColor: "var(--bg-secondary)", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px", fontWeight: "bold" }}>
             <Filter size={18} />
             <span>Filters</span>
@@ -90,7 +90,7 @@ export default function BrowseRecipes() {
               />
               <button
                 type="submit"
-                style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#8E897F", cursor: "pointer" }}
+                style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
               >
                 <Search size={18} />
               </button>
@@ -140,7 +140,7 @@ export default function BrowseRecipes() {
                 {recipes.map((recipe) => (
                   <RecipeCard recipe={recipe} key={recipe._id}>
                     <div className="card-footer">
-                      <span className="btn btn-secondary btn-sm">View Details</span>
+                      <Link to={`/recipes/${recipe._id}`} className="btn btn-secondary btn-sm">View Details</Link>
                       <span className="card-likes">
                         <Heart size={16} fill="var(--accent)" /> {recipe.likesCount}
                       </span>

@@ -1,11 +1,13 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ChefHat, LogOut, User, LayoutDashboard, UtensilsCrossed, Award } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
+import { ChefHat, LogOut, User, LayoutDashboard, UtensilsCrossed, Award, Moon, Sun } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -53,6 +55,10 @@ export default function Navbar() {
         </div>
 
         <div className="nav-actions">
+          <button onClick={toggleTheme} className="btn btn-secondary btn-sm" title="Toggle Theme" style={{ padding: "8px", borderRadius: "50%" }}>
+            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
+          
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>

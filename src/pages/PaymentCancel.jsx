@@ -5,7 +5,7 @@ import { XCircle } from "lucide-react";
 export default function PaymentCancel() {
   return (
     <div className="container section-padding" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "65vh" }}>
-      <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "#ffffff", padding: "40px", borderRadius: "12px", border: "1px solid #E5DEC9", boxShadow: "var(--shadow-md)", textAlign: "center" }}>
+      <div style={{ width: "100%", maxWidth: "500px", backgroundColor: "var(--bg-secondary)", padding: "40px", borderRadius: "12px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)", textAlign: "center" }}>
         <div style={{ color: "#DC2626", display: "inline-flex", marginBottom: "16px" }}>
           <XCircle size={56} />
         </div>
