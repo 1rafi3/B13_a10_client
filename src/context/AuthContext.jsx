@@ -110,7 +110,7 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     const { data, error } = await authClient.signIn.social({
       provider: "google",
-      callbackURL: window.location.origin
+      callbackURL: `${window.location.origin}/`
     });
     if (error) {
       throw new Error(error.message || "Google login failed");
