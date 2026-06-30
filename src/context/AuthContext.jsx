@@ -110,7 +110,7 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = () => {
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
     const callbackURL = encodeURIComponent(`${window.location.origin}/`);
-    window.location.href = `${apiUrl}/api/auth/signin/google?callbackURL=${callbackURL}`;
+    window.location.href = `${apiUrl}/api/oauth/google?callbackURL=${callbackURL}`;
   };
 
   // Helper to force reload user profile after premium payment or update
