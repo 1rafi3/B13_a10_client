@@ -107,10 +107,19 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
-  const loginWithGoogle = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    const callbackURL = encodeURIComponent(`${window.location.origin}/`);
-    window.location.href = `${apiUrl}/api/oauth/google?callbackURL=${callbackURL}`;
+  const loginWithGoogle = async () => {
+    try {
+      const { data, error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: window.location.origin,
+      });
+      if (error) {
+        throw new Error(error.message || "Google authentication failed.");
+      }
+    } catch (err) {
+      console.error("Google login error:", err);
+      throw err;
+    }
   };
 
   // Helper to force reload user profile after premium payment or update
